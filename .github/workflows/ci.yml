@@ -1,9 +1,6 @@
 name: CI/CD Pipeline
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
 
@@ -34,3 +31,6 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Output
+        run: terraform output -json > tf_output.json
