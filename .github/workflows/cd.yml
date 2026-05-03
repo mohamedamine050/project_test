@@ -34,9 +34,9 @@ jobs:
 
       - name: Upload Glue jobs to S3
         run: |
-          aws s3 cp src/jobs/analyze_metrics.py s3://$S3_BUCKET/scripts/analyze_metrics-${GIT_SHA}.py
-          aws s3 cp src/jobs/clean_raw_data.py s3://$S3_BUCKET/scripts/clean_raw_data-${GIT_SHA}.py
-          aws s3 cp src/jobs/export_to_redshift.py s3://$S3_BUCKET/scripts/export_to_redshift-${GIT_SHA}.py
+          # No Glue jobs found in output.json
+          echo "No Glue jobs to upload"
+
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
