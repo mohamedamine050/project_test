@@ -1,27 +1,30 @@
 name: CD Pipeline
+
 on:
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Build dependencies zip
+      - name: Set SHA
+        run: echo "GIT_SHA=${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Build dependencies
         run: |
           mkdir -p build
           pip install -r requirements.txt -t build/
           cd build
           zip -r ../dependencies.zip .
 
-      - name: Upload dependencies to S3
+      - name: Upload dependencies
         run: |
           aws s3 cp dependencies.zip s3://bucket/libs/dependencies-${GIT_SHA}.zip
         env:
@@ -29,15 +32,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
 
-      yaml
-      - name: Upload AWS Glue Job Scripts to S3
-        env:
-          S3_BUCKET: ${{ env.GLUE_ASSETS_BUCKET }}
-          GIT_SHA: ${{ github.sha }}
+      - name: Upload Glue jobs to S3
         run: |
-          aws s3 cp src/jobs/analyze_metrics.py s3://$S3_BUCKET/scripts/analyze_metrics_$GIT_SHA.py
-          aws s3 cp src/jobs/clean_raw_data.py s3://$S3_BUCKET/scripts/clean_raw_data_$GIT_SHA.py
-          aws s3 cp src/jobs/export_to_redshift.py s3://$S3_BUCKET/scripts/export_to_redshift_$GIT_SHA.py
+          # No Glue jobs found in output.json
+          echo "No Glue jobs to upload"
+
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
