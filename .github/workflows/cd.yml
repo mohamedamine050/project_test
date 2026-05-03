@@ -14,8 +14,11 @@ jobs:
         with:
           python-version: "3.11"
 
+
       - name: Set SHA
-        run: echo "GIT_SHA=${{ github.sha }}" >> $GITHUB_ENV
+        run: echo "GIT_SHA=${{{{ github.sha }}}}" >> $GITHUB_ENV
+
+
 
       - name: Build dependencies
         run: |
