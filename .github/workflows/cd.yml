@@ -65,3 +65,10 @@ jobs:
           aws s3 cp frontend/src/jobs/etl_sales.py $S3_PATH_2
           aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_3
           aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_4
+
+      - name: Run Glue jobs
+        run: |
+          aws glue start-job-run --job-name 
+          aws glue start-job-run --job-name 
+          aws glue start-job-run --job-name 
+          aws glue start-job-run --job-name 
