@@ -50,13 +50,13 @@ jobs:
 
       - name: Build S3 path
         run: |
-          echo "S3_PATH_1=s3://$S3_BUCKET_1/$S3_KEY_1" >> $GITHUB_ENV
+          echo "S3_PATH_1=s3://$S3_BUCKET_1/$GIT_SHA/$S3_KEY_1" >> $GITHUB_ENV
 
-          echo "S3_PATH_2=s3://$S3_BUCKET_2/$S3_KEY_2" >> $GITHUB_ENV
+          echo "S3_PATH_2=s3://$S3_BUCKET_2/$GIT_SHA/$S3_KEY_2" >> $GITHUB_ENV
 
-          echo "S3_PATH_3=s3://$S3_BUCKET_3/$S3_KEY_3" >> $GITHUB_ENV
+          echo "S3_PATH_3=s3://$S3_BUCKET_3/$GIT_SHA/$S3_KEY_3" >> $GITHUB_ENV
 
-          echo "S3_PATH_4=s3://$S3_BUCKET_4/$S3_KEY_4" >> $GITHUB_ENV
+          echo "S3_PATH_4=s3://$S3_BUCKET_4/$GIT_SHA/$S3_KEY_4" >> $GITHUB_ENV
 
 
       - name: Replace Glue script in S3
