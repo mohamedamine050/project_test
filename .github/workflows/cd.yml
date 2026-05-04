@@ -68,7 +68,7 @@ jobs:
 
       - name: Run Glue jobs
         run: |
-          aws glue start-job-run --job-name 
-          aws glue start-job-run --job-name 
-          aws glue start-job-run --job-name 
-          aws glue start-job-run --job-name 
+          aws glue start-job-run --job-name etl_offers
+          aws glue start-job-run --job-name etl_sales
+          aws glue start-job-run --job-name glue_users
+          aws glue start-job-run --job-name peouo
