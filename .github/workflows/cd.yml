@@ -37,15 +37,19 @@ jobs:
         run: |
           echo "S3_BUCKET_1=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_1=$(terraform output -raw glue_test_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_1=etl_offers" >> $GITHUB_ENV
 
           echo "S3_BUCKET_2=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_2=$(terraform output -raw glue_test_script_s3)" >> $GITHUB_ENV
+          echo "GLUE_JOB_2=etl_sales" >> $GITHUB_ENV
 
           echo "S3_BUCKET_3=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_3=$(terraform output -raw glue_test)" >> $GITHUB_ENV
+          echo "GLUE_JOB_3=glue_users" >> $GITHUB_ENV
 
           echo "S3_BUCKET_4=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_4=$(terraform output -raw glue_prod)" >> $GITHUB_ENV
+          echo "GLUE_JOB_4=peouo" >> $GITHUB_ENV
 
 
       - name: Build S3 path
@@ -65,17 +69,6 @@ jobs:
           aws s3 cp frontend/src/jobs/etl_sales.py $S3_PATH_2
           aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_3
           aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_4
-
-      - name: Get Glue job names
-        run: |
-          echo "GLUE_JOB_1=etl_offers" >> $GITHUB_ENV
-
-          echo "GLUE_JOB_2=etl_sales" >> $GITHUB_ENV
-
-          echo "GLUE_JOB_3=glue_users" >> $GITHUB_ENV
-
-          echo "GLUE_JOB_4=peouo" >> $GITHUB_ENV
-
 
       - name: Trigger Glue Jobs
         run: |
