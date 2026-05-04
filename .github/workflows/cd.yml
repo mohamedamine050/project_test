@@ -16,7 +16,7 @@ jobs:
 
 
       - name: Set SHA
-        run: echo "GIT_SHA=${{ github.sha }}" >> $GITHUB_ENV
+        run: echo "GIT_SHA=0000000000000000000000000000000000000000" >> $GITHUB_ENV
 
       - name: Build dependencies
         run: |
