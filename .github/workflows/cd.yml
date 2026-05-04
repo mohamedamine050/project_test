@@ -35,11 +35,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
 
-      - name: Upload Glue jobs to S3
+      - name: Get Terraform outputs
         run: |
-          aws s3 cp frontend/src/jobs/etl_offers.py s3://$S3_BUCKET/scripts/etl_offers-${GIT_SHA}.py
-          aws s3 cp frontend/src/jobs/etl_sales.py s3://$S3_BUCKET/scripts/etl_sales-${GIT_SHA}.py
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
+          echo "S3_BUCKET=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_KEY=$(terraform output -raw glue_test_script_s3_key)" >> $GITHUB_ENV
+
+      - name: Build S3 path
+        run: |
+          echo "S3_PATH=s3://$S3_BUCKET/$S3_KEY" >> $GITHUB_ENV
+
+      - name: Replace Glue script in S3
+        run: |
+          aws s3 cp frontend/src/jobs/etl_offers.py $S3_PATH
