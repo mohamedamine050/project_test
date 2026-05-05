@@ -35,21 +35,13 @@ jobs:
 
       - name: Get Terraform outputs
         run: |
-          echo "S3_BUCKET_1=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_1=$(terraform output -raw glue_test_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_1=$(terraform output -raw glue_test_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_1=$(terraform output -raw glue_test_script_s3_key)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_2=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
-          echo "S3_KEY_2=$(terraform output -raw glue_test_script_s3)" >> $GITHUB_ENV
-          echo "GLUE_JOB_2=$(terraform output -raw glue_test_script_s3)" >> $GITHUB_ENV
-
-          echo "S3_BUCKET_3=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
-          echo "S3_KEY_3=$(terraform output -raw glue_test)" >> $GITHUB_ENV
-          echo "GLUE_JOB_3=$(terraform output -raw glue_test)" >> $GITHUB_ENV
-
-          echo "S3_BUCKET_4=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
-          echo "S3_KEY_4=$(terraform output -raw glue_prod)" >> $GITHUB_ENV
-          echo "GLUE_JOB_4=$(terraform output -raw glue_prod)" >> $GITHUB_ENV
+          echo "S3_BUCKET_2=$(terraform output -raw glue_second_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_KEY_2=$(terraform output -raw glue_second_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_2=$(terraform output -raw glue_second_script_s3_key)" >> $GITHUB_ENV
 
 
       - name: Build S3 path
@@ -58,21 +50,13 @@ jobs:
 
           echo "S3_PATH_2=s3://$S3_BUCKET_2/$GIT_SHA/$S3_KEY_2" >> $GITHUB_ENV
 
-          echo "S3_PATH_3=s3://$S3_BUCKET_3/$GIT_SHA/$S3_KEY_3" >> $GITHUB_ENV
-
-          echo "S3_PATH_4=s3://$S3_BUCKET_4/$GIT_SHA/$S3_KEY_4" >> $GITHUB_ENV
-
 
       - name: Replace Glue script in S3
         run: |
           aws s3 cp frontend/src/jobs/etl_offers.py $S3_PATH_1
           aws s3 cp frontend/src/jobs/etl_sales.py $S3_PATH_2
-          aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_3
-          aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_4
 
       - name: Trigger Glue Jobs
         run: |
           aws glue start-job-run --job-name $GLUE_JOB_1
           aws glue start-job-run --job-name $GLUE_JOB_2
-          aws glue start-job-run --job-name $GLUE_JOB_3
-          aws glue start-job-run --job-name $GLUE_JOB_4
