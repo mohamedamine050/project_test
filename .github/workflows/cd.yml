@@ -116,10 +116,10 @@ jobs:
 
             while [[ "$STATUS" == "STARTING" || "$STATUS" == "RUNNING" ]]; do
               STATUS=$(aws glue get-job-run \
-                --job-name  "$JOB_NAME" \
-                --run-id    "$RUN_ID"   \
-                --query     'JobRun.JobRunState' \
-                --output    text)
+                --job-name "$JOB_NAME" \
+                --run-id "$RUN_ID" \
+                --query 'JobRun.JobRunState' \
+                --output text)
 
               echo "  [$JOB_NAME] → $STATUS"
 
@@ -141,8 +141,10 @@ jobs:
             return 0
           }
 
-          # FIX : lancer les surveillances en parallèle (background &)
-          # puis attendre tous les résultats avec wait
+          watch_run "$GLUE_JOB_1" "$RUN_ID_1" &
+          watch_run "$GLUE_JOB_2" "$RUN_ID_2" &
+          watch_run "$GLUE_JOB_3" "$RUN_ID_3" &
+          watch_run "$GLUE_JOB_4" "$RUN_ID_4" &
 
           # Attendre tous les processus et échouer si l'un d'eux échoue
           FAILED=0
@@ -150,10 +152,6 @@ jobs:
             wait "$pid" || FAILED=1
           done
 
-          watch_run "$GLUE_JOB_1" "$RUN_ID_1" &
-          watch_run "$GLUE_JOB_2" "$RUN_ID_2" &
-          watch_run "$GLUE_JOB_3" "$RUN_ID_3" &
-          watch_run "$GLUE_JOB_4" "$RUN_ID_4" &
           if [ "$FAILED" -eq 1 ]; then
             echo ""
             echo "❌ Un ou plusieurs jobs Glue ont échoué."
