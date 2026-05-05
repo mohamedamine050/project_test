@@ -2,6 +2,11 @@ name: CD Pipeline
 
 on:
   workflow_dispatch:
+    inputs:
+      rollback_sha:
+        description: Previous successful commit SHA to restore on rollback
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -160,3 +165,20 @@ jobs:
 
           echo ""
           echo "✅ Tous les smoke tests sont passés."
+
+      - name: Rollback Glue scripts
+        if: failure() && inputs.rollback_sha != ''
+        run: |
+          echo "Rollback SHA: ${{ inputs.rollback_sha }}"
+          aws s3 cp s3://$S3_BUCKET_1/${{ inputs.rollback_sha }}/$S3_KEY_1 $S3_PATH_1
+          aws s3 cp s3://$S3_BUCKET_2/${{ inputs.rollback_sha }}/$S3_KEY_2 $S3_PATH_2
+          aws s3 cp s3://$S3_BUCKET_3/${{ inputs.rollback_sha }}/$S3_KEY_3 $S3_PATH_3
+          aws s3 cp s3://$S3_BUCKET_4/${{ inputs.rollback_sha }}/$S3_KEY_4 $S3_PATH_4
+
+      - name: Re-trigger Glue jobs after rollback
+        if: failure() && inputs.rollback_sha != ''
+        run: |
+          aws glue start-job-run --job-name "$GLUE_JOB_1"
+          aws glue start-job-run --job-name "$GLUE_JOB_2"
+          aws glue start-job-run --job-name "$GLUE_JOB_3"
+          aws glue start-job-run --job-name "$GLUE_JOB_4"
