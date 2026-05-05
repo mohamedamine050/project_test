@@ -43,6 +43,14 @@ jobs:
           echo "S3_KEY_2=$(terraform output -raw glue_second_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_2=$(terraform output -raw glue_second_job_name)" >> $GITHUB_ENV
 
+          echo "S3_BUCKET_3=$(terraform output -raw glue_third_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_KEY_3=$(terraform output -raw glue_third_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_3=$(terraform output -raw glue_third_job_name)" >> $GITHUB_ENV
+
+          echo "S3_BUCKET_4=$(terraform output -raw glue_fourth_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_KEY_4=$(terraform output -raw glue_fourth_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_4=$(terraform output -raw glue_fourth_job_name)" >> $GITHUB_ENV
+
 
       - name: Build S3 path
         run: |
@@ -50,13 +58,21 @@ jobs:
 
           echo "S3_PATH_2=s3://$S3_BUCKET_2/$GIT_SHA/$S3_KEY_2" >> $GITHUB_ENV
 
+          echo "S3_PATH_3=s3://$S3_BUCKET_3/$GIT_SHA/$S3_KEY_3" >> $GITHUB_ENV
+
+          echo "S3_PATH_4=s3://$S3_BUCKET_4/$GIT_SHA/$S3_KEY_4" >> $GITHUB_ENV
+
 
       - name: Replace Glue script in S3
         run: |
           aws s3 cp frontend/src/jobs/etl_offers.py $S3_PATH_1
           aws s3 cp frontend/src/jobs/etl_sales.py $S3_PATH_2
+          aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_3
+          aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_4
 
       - name: Trigger Glue Jobs
         run: |
           aws glue start-job-run --job-name $GLUE_JOB_1
           aws glue start-job-run --job-name $GLUE_JOB_2
+          aws glue start-job-run --job-name $GLUE_JOB_3
+          aws glue start-job-run --job-name $GLUE_JOB_4
