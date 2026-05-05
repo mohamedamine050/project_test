@@ -30,7 +30,7 @@ jobs:
       - name: Checkout Terraform Repo
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/mohamedamine050/projet_smart-grid
+          repository: https://github.com/mohamedamine050/repo_terraforme
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Configure AWS Credentials
