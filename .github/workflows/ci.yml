@@ -3,6 +3,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Data Engineering Repo
+        uses: actions/checkout@v4
+        with:
+          repository: https://github.com/mohamedamine050/project_test
+          token: ${ secrets.GH_TOKEN }
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Quality Gate check
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   infra-provisioning:
     runs-on: ubuntu-latest
