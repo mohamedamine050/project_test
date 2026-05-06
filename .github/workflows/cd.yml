@@ -35,33 +35,37 @@ jobs:
 
       - name: Get Terraform outputs
         run: |
-          echo "S3_BUCKET_1=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_1=$(terraform output -raw glue_test_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_1=$(terraform output -raw glue_test_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_1=$(terraform output -raw glue_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_2=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_2=$(terraform output -raw glue_second_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_2=$(terraform output -raw glue_second_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_2=$(terraform output -raw glue_second_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_3=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_3=$(terraform output -raw glue_third_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_3=$(terraform output -raw glue_third_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_3=$(terraform output -raw glue_third_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_4=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_4=$(terraform output -raw glue_fourth_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_4=$(terraform output -raw glue_fourth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_4=$(terraform output -raw glue_fourth_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_5=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_5=$(terraform output -raw glue_fifth_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_5=$(terraform output -raw glue_fifth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_5=$(terraform output -raw glue_fifth_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_6=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_6=$(terraform output -raw glue_sixth_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_6=$(terraform output -raw glue_sixth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_6=$(terraform output -raw glue_sixth_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_7=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
+          echo "S3_BUCKET_7=$(terraform output -raw glue_seventh_script_s3_bucket)" >> $GITHUB_ENV
           echo "S3_KEY_7=$(terraform output -raw glue_seventh_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_7=$(terraform output -raw glue_seventh_job_name)" >> $GITHUB_ENV
+
+          echo "S3_BUCKET_8=$(terraform output -raw glue_eighth_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_KEY_8=$(terraform output -raw glue_eighth_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_8=$(terraform output -raw glue_eighth_job_name)" >> $GITHUB_ENV
 
 
       - name: Build S3 path
@@ -80,6 +84,8 @@ jobs:
 
           echo "S3_PATH_7=s3://$S3_BUCKET_7/$S3_KEY_7" >> $GITHUB_ENV
 
+          echo "S3_PATH_8=s3://$S3_BUCKET_8/$S3_KEY_8" >> $GITHUB_ENV
+
 
       - name: Backup Current Glue Scripts
         run: |
@@ -93,6 +99,7 @@ jobs:
           aws s3 cp s3://$S3_BUCKET_5/$S3_KEY_5 .backups/glue_job_5_backup.py 2>/dev/null || echo "[WARN] No current script for job 5"
           aws s3 cp s3://$S3_BUCKET_6/$S3_KEY_6 .backups/glue_job_6_backup.py 2>/dev/null || echo "[WARN] No current script for job 6"
           aws s3 cp s3://$S3_BUCKET_7/$S3_KEY_7 .backups/glue_job_7_backup.py 2>/dev/null || echo "[WARN] No current script for job 7"
+          aws s3 cp s3://$S3_BUCKET_8/$S3_KEY_8 .backups/glue_job_8_backup.py 2>/dev/null || echo "[WARN] No current script for job 8"
           echo "[✓] Backup completed"
 
       - name: Replace Glue script in S3
@@ -103,7 +110,8 @@ jobs:
           aws s3 cp frontend/src/jobs/etl_sports $S3_PATH_4
           aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_5
           aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_6
-          aws s3 cp frontend/src/jobs/transform.py $S3_PATH_7
+          aws s3 cp frontend/src/jobs/tele.py $S3_PATH_7
+          aws s3 cp frontend/src/jobs/transform.py $S3_PATH_8
 
       # ─────────────────────────────
       # 10. Trigger Glue Jobs + capturer les Run IDs
@@ -133,7 +141,10 @@ jobs:
           RUN7=$(aws glue start-job-run --job-name "$GLUE_JOB_7" --query 'JobRunId' --output text)
           echo "RUN_ID_7=$RUN7" >> $GITHUB_ENV
 
-          echo "Jobs lancés : $RUN1 | $RUN2 | $RUN3 | $RUN4 | $RUN5 | $RUN6 | $RUN7"
+          RUN8=$(aws glue start-job-run --job-name "$GLUE_JOB_8" --query 'JobRunId' --output text)
+          echo "RUN_ID_8=$RUN8" >> $GITHUB_ENV
+
+          echo "Jobs lancés : $RUN1 | $RUN2 | $RUN3 | $RUN4 | $RUN5 | $RUN6 | $RUN7 | $RUN8"
 
       # ─────────────────────────────
       # 11. SMOKE TEST
@@ -192,6 +203,7 @@ jobs:
           watch_run "$GLUE_JOB_5" "$RUN_ID_5" &
           watch_run "$GLUE_JOB_6" "$RUN_ID_6" &
           watch_run "$GLUE_JOB_7" "$RUN_ID_7" &
+          watch_run "$GLUE_JOB_8" "$RUN_ID_8" &
 
           # Attendre tous les processus et échouer si l'un d'eux échoue
           FAILED=0
@@ -260,6 +272,12 @@ jobs:
           echo "[ROLLBACK 7] Restarting $GLUE_JOB_7 with old script..."
           NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_7 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
           if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 7 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 7"; fi
+
+          echo "[ROLLBACK 8] Restoring old script for $GLUE_JOB_8..."
+          aws s3 cp .backups/glue_job_8_backup.py s3://$S3_BUCKET_8/$S3_KEY_8 || echo "[WARN] Could not restore backup for job 8"
+          echo "[ROLLBACK 8] Restarting $GLUE_JOB_8 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_8 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 8 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 8"; fi
 
           echo ""
           echo "✅ Rollback completed - old scripts restored and jobs restarted"
