@@ -67,6 +67,10 @@ jobs:
           echo "S3_KEY_8=$(terraform output -raw glue_eighth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_8=$(terraform output -raw glue_eighth_job_name)" >> $GITHUB_ENV
 
+          echo "S3_BUCKET_9=$(terraform output -raw glue_ninth_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_KEY_9=$(terraform output -raw glue_ninth_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_9=$(terraform output -raw glue_ninth_job_name)" >> $GITHUB_ENV
+
 
       - name: Build S3 path
         run: |
@@ -85,6 +89,8 @@ jobs:
           echo "S3_PATH_7=s3://$S3_BUCKET_7/$S3_KEY_7" >> $GITHUB_ENV
 
           echo "S3_PATH_8=s3://$S3_BUCKET_8/$S3_KEY_8" >> $GITHUB_ENV
+
+          echo "S3_PATH_9=s3://$S3_BUCKET_9/$S3_KEY_9" >> $GITHUB_ENV
 
 
       - name: Backup Current Glue Scripts
@@ -109,9 +115,10 @@ jobs:
           aws s3 cp frontend/src/jobs/etl_sales.py $S3_PATH_3
           aws s3 cp frontend/src/jobs/etl_sports $S3_PATH_4
           aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_5
-          aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_6
-          aws s3 cp frontend/src/jobs/tele.py $S3_PATH_7
-          aws s3 cp frontend/src/jobs/transform.py $S3_PATH_8
+          aws s3 cp frontend/src/jobs/make.py $S3_PATH_6
+          aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_7
+          aws s3 cp frontend/src/jobs/tele.py $S3_PATH_8
+          aws s3 cp frontend/src/jobs/transform.py $S3_PATH_9
 
       # ─────────────────────────────
       # 10. Trigger Glue Jobs + capturer les Run IDs
@@ -144,7 +151,10 @@ jobs:
           RUN8=$(aws glue start-job-run --job-name "$GLUE_JOB_8" --query 'JobRunId' --output text)
           echo "RUN_ID_8=$RUN8" >> $GITHUB_ENV
 
-          echo "Jobs lancés : $RUN1 | $RUN2 | $RUN3 | $RUN4 | $RUN5 | $RUN6 | $RUN7 | $RUN8"
+          RUN9=$(aws glue start-job-run --job-name "$GLUE_JOB_9" --query 'JobRunId' --output text)
+          echo "RUN_ID_9=$RUN9" >> $GITHUB_ENV
+
+          echo "Jobs lancés : $RUN1 | $RUN2 | $RUN3 | $RUN4 | $RUN5 | $RUN6 | $RUN7 | $RUN8 | $RUN9"
 
       # ─────────────────────────────
       # 11. SMOKE TEST
@@ -204,6 +214,7 @@ jobs:
           watch_run "$GLUE_JOB_6" "$RUN_ID_6" &
           watch_run "$GLUE_JOB_7" "$RUN_ID_7" &
           watch_run "$GLUE_JOB_8" "$RUN_ID_8" &
+          watch_run "$GLUE_JOB_9" "$RUN_ID_9" &
 
           # Attendre tous les processus et échouer si l'un d'eux échoue
           FAILED=0
