@@ -63,6 +63,34 @@ jobs:
           echo "S3_PATH_4=s3://$S3_BUCKET_4/$S3_KEY_4" >> $GITHUB_ENV
 
 
+      - name: Capture Previous Script Versions
+        run: |
+          set -euo pipefail
+          PREV_VER_1=$(aws s3api list-object-versions --bucket "$S3_BUCKET_1" --prefix "$S3_KEY_1" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
+          if [ "$PREV_VER_1" = "None" ] || [ "$PREV_VER_1" = "null" ] || [ -z "$PREV_VER_1" ]; then
+            echo "[WARN] No previous version found for s3://$S3_BUCKET_1/$S3_KEY_1"
+          fi
+          echo "PREV_VER_1=$PREV_VER_1" >> $GITHUB_ENV
+
+          PREV_VER_2=$(aws s3api list-object-versions --bucket "$S3_BUCKET_2" --prefix "$S3_KEY_2" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
+          if [ "$PREV_VER_2" = "None" ] || [ "$PREV_VER_2" = "null" ] || [ -z "$PREV_VER_2" ]; then
+            echo "[WARN] No previous version found for s3://$S3_BUCKET_2/$S3_KEY_2"
+          fi
+          echo "PREV_VER_2=$PREV_VER_2" >> $GITHUB_ENV
+
+          PREV_VER_3=$(aws s3api list-object-versions --bucket "$S3_BUCKET_3" --prefix "$S3_KEY_3" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
+          if [ "$PREV_VER_3" = "None" ] || [ "$PREV_VER_3" = "null" ] || [ -z "$PREV_VER_3" ]; then
+            echo "[WARN] No previous version found for s3://$S3_BUCKET_3/$S3_KEY_3"
+          fi
+          echo "PREV_VER_3=$PREV_VER_3" >> $GITHUB_ENV
+
+          PREV_VER_4=$(aws s3api list-object-versions --bucket "$S3_BUCKET_4" --prefix "$S3_KEY_4" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
+          if [ "$PREV_VER_4" = "None" ] || [ "$PREV_VER_4" = "null" ] || [ -z "$PREV_VER_4" ]; then
+            echo "[WARN] No previous version found for s3://$S3_BUCKET_4/$S3_KEY_4"
+          fi
+          echo "PREV_VER_4=$PREV_VER_4" >> $GITHUB_ENV
+
+
       - name: Replace Glue script in S3
         run: |
           aws s3 cp frontend/src/jobs/etl_offers.py $S3_PATH_1
@@ -160,3 +188,48 @@ jobs:
 
           echo ""
           echo "✅ Tous les smoke tests sont passés."
+
+      # ─────────────────────────────
+      # 12. ROLLBACK ON FAILURE
+      # Restore previous S3 object versions captured before deploy
+      # ─────────────────────────────
+      - name: Rollback - Restore Previous Script Versions
+        if: failure()
+        run: |
+          set -euo pipefail
+          echo ""
+          echo "🔴 SMOKE TEST FAILED - INITIATING ROLLBACK"
+          echo ""
+          if [ "${PREV_VER_1:-None}" != "None" ] && [ "${PREV_VER_1:-None}" != "null" ] && [ -n "${PREV_VER_1:-}" ]; then
+            echo "[ROLLBACK 1] Restoring previous version for s3://$S3_BUCKET_1/$S3_KEY_1 (version: $PREV_VER_1)"
+            aws s3api copy-object --bucket "$S3_BUCKET_1" --copy-source "$S3_BUCKET_1/$S3_KEY_1?versionId=$PREV_VER_1" --key "$S3_KEY_1"
+          else
+            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_1/$S3_KEY_1"
+          fi
+
+          if [ "${PREV_VER_2:-None}" != "None" ] && [ "${PREV_VER_2:-None}" != "null" ] && [ -n "${PREV_VER_2:-}" ]; then
+            echo "[ROLLBACK 2] Restoring previous version for s3://$S3_BUCKET_2/$S3_KEY_2 (version: $PREV_VER_2)"
+            aws s3api copy-object --bucket "$S3_BUCKET_2" --copy-source "$S3_BUCKET_2/$S3_KEY_2?versionId=$PREV_VER_2" --key "$S3_KEY_2"
+          else
+            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_2/$S3_KEY_2"
+          fi
+
+          if [ "${PREV_VER_3:-None}" != "None" ] && [ "${PREV_VER_3:-None}" != "null" ] && [ -n "${PREV_VER_3:-}" ]; then
+            echo "[ROLLBACK 3] Restoring previous version for s3://$S3_BUCKET_3/$S3_KEY_3 (version: $PREV_VER_3)"
+            aws s3api copy-object --bucket "$S3_BUCKET_3" --copy-source "$S3_BUCKET_3/$S3_KEY_3?versionId=$PREV_VER_3" --key "$S3_KEY_3"
+          else
+            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_3/$S3_KEY_3"
+          fi
+
+          if [ "${PREV_VER_4:-None}" != "None" ] && [ "${PREV_VER_4:-None}" != "null" ] && [ -n "${PREV_VER_4:-}" ]; then
+            echo "[ROLLBACK 4] Restoring previous version for s3://$S3_BUCKET_4/$S3_KEY_4 (version: $PREV_VER_4)"
+            aws s3api copy-object --bucket "$S3_BUCKET_4" --copy-source "$S3_BUCKET_4/$S3_KEY_4?versionId=$PREV_VER_4" --key "$S3_KEY_4"
+          else
+            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_4/$S3_KEY_4"
+          fi
+
+          echo "✅ Rollback completed"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
