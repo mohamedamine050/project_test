@@ -52,51 +52,70 @@ jobs:
           echo "GLUE_JOB_4=$(terraform output -raw glue_fourth_job_name)" >> $GITHUB_ENV
 
 
-      - name: Build S3 path
+      - name: Build Release and Live paths
         run: |
-          echo "S3_PATH_1=s3://$S3_BUCKET_1/$S3_KEY_1" >> $GITHUB_ENV
+          echo "RELEASE_KEY_1=releases/$GIT_SHA/$S3_KEY_1" >> $GITHUB_ENV
+          echo "RELEASE_PATH_1=s3://$S3_BUCKET_1/$RELEASE_KEY_1" >> $GITHUB_ENV
+          echo "LIVE_PATH_1=s3://$S3_BUCKET_1/$S3_KEY_1" >> $GITHUB_ENV
+          echo "POINTER_KEY_1=metadata/glue/$GLUE_JOB_1/current_sha.txt" >> $GITHUB_ENV
 
-          echo "S3_PATH_2=s3://$S3_BUCKET_2/$S3_KEY_2" >> $GITHUB_ENV
+          echo "RELEASE_KEY_2=releases/$GIT_SHA/$S3_KEY_2" >> $GITHUB_ENV
+          echo "RELEASE_PATH_2=s3://$S3_BUCKET_2/$RELEASE_KEY_2" >> $GITHUB_ENV
+          echo "LIVE_PATH_2=s3://$S3_BUCKET_2/$S3_KEY_2" >> $GITHUB_ENV
+          echo "POINTER_KEY_2=metadata/glue/$GLUE_JOB_2/current_sha.txt" >> $GITHUB_ENV
 
-          echo "S3_PATH_3=s3://$S3_BUCKET_3/$S3_KEY_3" >> $GITHUB_ENV
+          echo "RELEASE_KEY_3=releases/$GIT_SHA/$S3_KEY_3" >> $GITHUB_ENV
+          echo "RELEASE_PATH_3=s3://$S3_BUCKET_3/$RELEASE_KEY_3" >> $GITHUB_ENV
+          echo "LIVE_PATH_3=s3://$S3_BUCKET_3/$S3_KEY_3" >> $GITHUB_ENV
+          echo "POINTER_KEY_3=metadata/glue/$GLUE_JOB_3/current_sha.txt" >> $GITHUB_ENV
 
-          echo "S3_PATH_4=s3://$S3_BUCKET_4/$S3_KEY_4" >> $GITHUB_ENV
+          echo "RELEASE_KEY_4=releases/$GIT_SHA/$S3_KEY_4" >> $GITHUB_ENV
+          echo "RELEASE_PATH_4=s3://$S3_BUCKET_4/$RELEASE_KEY_4" >> $GITHUB_ENV
+          echo "LIVE_PATH_4=s3://$S3_BUCKET_4/$S3_KEY_4" >> $GITHUB_ENV
+          echo "POINTER_KEY_4=metadata/glue/$GLUE_JOB_4/current_sha.txt" >> $GITHUB_ENV
 
 
-      - name: Capture Previous Script Versions
+      - name: Load Previous Release Pointers
         run: |
           set -euo pipefail
-          PREV_VER_1=$(aws s3api list-object-versions --bucket "$S3_BUCKET_1" --prefix "$S3_KEY_1" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
-          if [ "$PREV_VER_1" = "None" ] || [ "$PREV_VER_1" = "null" ] || [ -z "$PREV_VER_1" ]; then
-            echo "[WARN] No previous version found for s3://$S3_BUCKET_1/$S3_KEY_1"
+          PREV_SHA_1=$(aws s3 cp s3://$S3_BUCKET_1/$POINTER_KEY_1 - 2>/dev/null | tr -d '\r\n' || echo "None")
+          if [ "$PREV_SHA_1" = "None" ] || [ -z "$PREV_SHA_1" ]; then
+            echo "[WARN] No previous release pointer found for $GLUE_JOB_1"
           fi
-          echo "PREV_VER_1=$PREV_VER_1" >> $GITHUB_ENV
+          echo "PREV_SHA_1=$PREV_SHA_1" >> $GITHUB_ENV
 
-          PREV_VER_2=$(aws s3api list-object-versions --bucket "$S3_BUCKET_2" --prefix "$S3_KEY_2" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
-          if [ "$PREV_VER_2" = "None" ] || [ "$PREV_VER_2" = "null" ] || [ -z "$PREV_VER_2" ]; then
-            echo "[WARN] No previous version found for s3://$S3_BUCKET_2/$S3_KEY_2"
+          PREV_SHA_2=$(aws s3 cp s3://$S3_BUCKET_2/$POINTER_KEY_2 - 2>/dev/null | tr -d '\r\n' || echo "None")
+          if [ "$PREV_SHA_2" = "None" ] || [ -z "$PREV_SHA_2" ]; then
+            echo "[WARN] No previous release pointer found for $GLUE_JOB_2"
           fi
-          echo "PREV_VER_2=$PREV_VER_2" >> $GITHUB_ENV
+          echo "PREV_SHA_2=$PREV_SHA_2" >> $GITHUB_ENV
 
-          PREV_VER_3=$(aws s3api list-object-versions --bucket "$S3_BUCKET_3" --prefix "$S3_KEY_3" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
-          if [ "$PREV_VER_3" = "None" ] || [ "$PREV_VER_3" = "null" ] || [ -z "$PREV_VER_3" ]; then
-            echo "[WARN] No previous version found for s3://$S3_BUCKET_3/$S3_KEY_3"
+          PREV_SHA_3=$(aws s3 cp s3://$S3_BUCKET_3/$POINTER_KEY_3 - 2>/dev/null | tr -d '\r\n' || echo "None")
+          if [ "$PREV_SHA_3" = "None" ] || [ -z "$PREV_SHA_3" ]; then
+            echo "[WARN] No previous release pointer found for $GLUE_JOB_3"
           fi
-          echo "PREV_VER_3=$PREV_VER_3" >> $GITHUB_ENV
+          echo "PREV_SHA_3=$PREV_SHA_3" >> $GITHUB_ENV
 
-          PREV_VER_4=$(aws s3api list-object-versions --bucket "$S3_BUCKET_4" --prefix "$S3_KEY_4" --query "Versions[?IsLatest].VersionId | [0]" --output text 2>/dev/null || echo "None")
-          if [ "$PREV_VER_4" = "None" ] || [ "$PREV_VER_4" = "null" ] || [ -z "$PREV_VER_4" ]; then
-            echo "[WARN] No previous version found for s3://$S3_BUCKET_4/$S3_KEY_4"
+          PREV_SHA_4=$(aws s3 cp s3://$S3_BUCKET_4/$POINTER_KEY_4 - 2>/dev/null | tr -d '\r\n' || echo "None")
+          if [ "$PREV_SHA_4" = "None" ] || [ -z "$PREV_SHA_4" ]; then
+            echo "[WARN] No previous release pointer found for $GLUE_JOB_4"
           fi
-          echo "PREV_VER_4=$PREV_VER_4" >> $GITHUB_ENV
+          echo "PREV_SHA_4=$PREV_SHA_4" >> $GITHUB_ENV
 
 
-      - name: Replace Glue script in S3
+      - name: Upload scripts to release path
         run: |
-          aws s3 cp frontend/src/jobs/etl_offers.py $S3_PATH_1
-          aws s3 cp frontend/src/jobs/etl_sales.py $S3_PATH_2
-          aws s3 cp frontend/src/jobs/glue_users.py $S3_PATH_3
-          aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_4
+          aws s3 cp frontend/src/jobs/etl_offers.py $RELEASE_PATH_1
+          aws s3 cp frontend/src/jobs/etl_sales.py $RELEASE_PATH_2
+          aws s3 cp frontend/src/jobs/glue_users.py $RELEASE_PATH_3
+          aws s3 cp frontend/src/jobs/peouo.py $RELEASE_PATH_4
+
+      - name: Promote release to live path
+        run: |
+          aws s3 cp $RELEASE_PATH_1 $LIVE_PATH_1
+          aws s3 cp $RELEASE_PATH_2 $LIVE_PATH_2
+          aws s3 cp $RELEASE_PATH_3 $LIVE_PATH_3
+          aws s3 cp $RELEASE_PATH_4 $LIVE_PATH_4
 
       # ─────────────────────────────
       # 10. Trigger Glue Jobs + capturer les Run IDs
@@ -191,44 +210,65 @@ jobs:
 
       # ─────────────────────────────
       # 12. ROLLBACK ON FAILURE
-      # Restore previous S3 object versions captured before deploy
+      # Restore previous release to live path when smoke test fails
       # ─────────────────────────────
-      - name: Rollback - Restore Previous Script Versions
+      - name: Rollback - Restore Previous Release
         if: failure()
         run: |
           set -euo pipefail
           echo ""
           echo "🔴 SMOKE TEST FAILED - INITIATING ROLLBACK"
           echo ""
-          if [ "${PREV_VER_1:-None}" != "None" ] && [ "${PREV_VER_1:-None}" != "null" ] && [ -n "${PREV_VER_1:-}" ]; then
-            echo "[ROLLBACK 1] Restoring previous version for s3://$S3_BUCKET_1/$S3_KEY_1 (version: $PREV_VER_1)"
-            aws s3api copy-object --bucket "$S3_BUCKET_1" --copy-source "$S3_BUCKET_1/$S3_KEY_1?versionId=$PREV_VER_1" --key "$S3_KEY_1"
+          if [ "${PREV_SHA_1:-None}" != "None" ] && [ -n "${PREV_SHA_1:-}" ]; then
+            PREV_RELEASE_PATH_1=s3://$S3_BUCKET_1/releases/$PREV_SHA_1/$S3_KEY_1
+            echo "[ROLLBACK 1] Restoring $GLUE_JOB_1 from $PREV_RELEASE_PATH_1"
+            aws s3 cp $PREV_RELEASE_PATH_1 $LIVE_PATH_1
+            aws glue start-job-run --job-name "$GLUE_JOB_1" --query 'JobRunId' --output text >/dev/null || true
           else
-            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_1/$S3_KEY_1"
+            echo "[WARN] No previous release pointer for $GLUE_JOB_1; skip rollback"
           fi
 
-          if [ "${PREV_VER_2:-None}" != "None" ] && [ "${PREV_VER_2:-None}" != "null" ] && [ -n "${PREV_VER_2:-}" ]; then
-            echo "[ROLLBACK 2] Restoring previous version for s3://$S3_BUCKET_2/$S3_KEY_2 (version: $PREV_VER_2)"
-            aws s3api copy-object --bucket "$S3_BUCKET_2" --copy-source "$S3_BUCKET_2/$S3_KEY_2?versionId=$PREV_VER_2" --key "$S3_KEY_2"
+          if [ "${PREV_SHA_2:-None}" != "None" ] && [ -n "${PREV_SHA_2:-}" ]; then
+            PREV_RELEASE_PATH_2=s3://$S3_BUCKET_2/releases/$PREV_SHA_2/$S3_KEY_2
+            echo "[ROLLBACK 2] Restoring $GLUE_JOB_2 from $PREV_RELEASE_PATH_2"
+            aws s3 cp $PREV_RELEASE_PATH_2 $LIVE_PATH_2
+            aws glue start-job-run --job-name "$GLUE_JOB_2" --query 'JobRunId' --output text >/dev/null || true
           else
-            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_2/$S3_KEY_2"
+            echo "[WARN] No previous release pointer for $GLUE_JOB_2; skip rollback"
           fi
 
-          if [ "${PREV_VER_3:-None}" != "None" ] && [ "${PREV_VER_3:-None}" != "null" ] && [ -n "${PREV_VER_3:-}" ]; then
-            echo "[ROLLBACK 3] Restoring previous version for s3://$S3_BUCKET_3/$S3_KEY_3 (version: $PREV_VER_3)"
-            aws s3api copy-object --bucket "$S3_BUCKET_3" --copy-source "$S3_BUCKET_3/$S3_KEY_3?versionId=$PREV_VER_3" --key "$S3_KEY_3"
+          if [ "${PREV_SHA_3:-None}" != "None" ] && [ -n "${PREV_SHA_3:-}" ]; then
+            PREV_RELEASE_PATH_3=s3://$S3_BUCKET_3/releases/$PREV_SHA_3/$S3_KEY_3
+            echo "[ROLLBACK 3] Restoring $GLUE_JOB_3 from $PREV_RELEASE_PATH_3"
+            aws s3 cp $PREV_RELEASE_PATH_3 $LIVE_PATH_3
+            aws glue start-job-run --job-name "$GLUE_JOB_3" --query 'JobRunId' --output text >/dev/null || true
           else
-            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_3/$S3_KEY_3"
+            echo "[WARN] No previous release pointer for $GLUE_JOB_3; skip rollback"
           fi
 
-          if [ "${PREV_VER_4:-None}" != "None" ] && [ "${PREV_VER_4:-None}" != "null" ] && [ -n "${PREV_VER_4:-}" ]; then
-            echo "[ROLLBACK 4] Restoring previous version for s3://$S3_BUCKET_4/$S3_KEY_4 (version: $PREV_VER_4)"
-            aws s3api copy-object --bucket "$S3_BUCKET_4" --copy-source "$S3_BUCKET_4/$S3_KEY_4?versionId=$PREV_VER_4" --key "$S3_KEY_4"
+          if [ "${PREV_SHA_4:-None}" != "None" ] && [ -n "${PREV_SHA_4:-}" ]; then
+            PREV_RELEASE_PATH_4=s3://$S3_BUCKET_4/releases/$PREV_SHA_4/$S3_KEY_4
+            echo "[ROLLBACK 4] Restoring $GLUE_JOB_4 from $PREV_RELEASE_PATH_4"
+            aws s3 cp $PREV_RELEASE_PATH_4 $LIVE_PATH_4
+            aws glue start-job-run --job-name "$GLUE_JOB_4" --query 'JobRunId' --output text >/dev/null || true
           else
-            echo "[WARN] No previous version to restore for s3://$S3_BUCKET_4/$S3_KEY_4"
+            echo "[WARN] No previous release pointer for $GLUE_JOB_4; skip rollback"
           fi
 
           echo "✅ Rollback completed"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Update release pointers
+        if: success()
+        run: |
+          set -euo pipefail
+          printf '%s' "$GIT_SHA" | aws s3 cp - s3://$S3_BUCKET_1/$POINTER_KEY_1
+          printf '%s' "$GIT_SHA" | aws s3 cp - s3://$S3_BUCKET_2/$POINTER_KEY_2
+          printf '%s' "$GIT_SHA" | aws s3 cp - s3://$S3_BUCKET_3/$POINTER_KEY_3
+          printf '%s' "$GIT_SHA" | aws s3 cp - s3://$S3_BUCKET_4/$POINTER_KEY_4
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
