@@ -63,25 +63,6 @@ jobs:
           echo "S3_PATH_4=s3://$S3_BUCKET_4/$GIT_SHA/$S3_KEY_4" >> $GITHUB_ENV
 
 
-
-      # ─────────────────────────────
-      # 9B. Backup Current Scripts (PRE-DEPLOY)
-      # Capture avant deployment pour rollback rapide
-      # ─────────────────────────────
-      - name: Backup Current Glue Scripts
-        run: |
-          mkdir -p .backups
-          echo "[INFO] Backing up current Glue scripts before deployment..."
-          aws s3 cp s3://$S3_BUCKET_1/$S3_KEY_1 .backups/glue_job_1_backup.py 2>/dev/null || echo "[WARN] No current script for job 1" 
-          aws s3 cp s3://$S3_BUCKET_2/$S3_KEY_2 .backups/glue_job_2_backup.py 2>/dev/null || echo "[WARN] No current script for job 2" 
-          aws s3 cp s3://$S3_BUCKET_3/$S3_KEY_3 .backups/glue_job_3_backup.py 2>/dev/null || echo "[WARN] No current script for job 3" 
-          aws s3 cp s3://$S3_BUCKET_4/$S3_KEY_4 .backups/glue_job_4_backup.py 2>/dev/null || echo "[WARN] No current script for job 4" 
-          echo "[✓] Backup completed"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-
       - name: Replace Glue script in S3
         run: |
           aws s3 cp frontend/src/jobs/etl_offers.py $S3_PATH_1
@@ -179,48 +160,3 @@ jobs:
 
           echo ""
           echo "✅ Tous les smoke tests sont passés."
-
-      # ─────────────────────────────
-      # 12. ROLLBACK ON FAILURE
-      # Restore old scripts + restart jobs with old versions
-      # ─────────────────────────────
-      - name: Rollback - Restore & Restart Old Jobs
-        if: failure()
-        run: |
-          set -euo pipefail
-          echo ""
-          echo "🔴 SMOKE TEST FAILED - INITIATING ROLLBACK"
-          echo ""
-
-          # Restore backups and restart jobs
-          echo "[ROLLBACK 1] Restoring old script for $GLUE_JOB_1..."
-          aws s3 cp .backups/glue_job_1_backup.py s3://$S3_BUCKET_1/$S3_KEY_1 || echo "[WARN] Could not restore backup for job 1"
-          echo "[ROLLBACK 1] Restarting $GLUE_JOB_1 with old script..."
-          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_1 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
-          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 1 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 1"; fi
-
-          echo "[ROLLBACK 2] Restoring old script for $GLUE_JOB_2..."
-          aws s3 cp .backups/glue_job_2_backup.py s3://$S3_BUCKET_2/$S3_KEY_2 || echo "[WARN] Could not restore backup for job 2"
-          echo "[ROLLBACK 2] Restarting $GLUE_JOB_2 with old script..."
-          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_2 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
-          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 2 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 2"; fi
-
-          echo "[ROLLBACK 3] Restoring old script for $GLUE_JOB_3..."
-          aws s3 cp .backups/glue_job_3_backup.py s3://$S3_BUCKET_3/$S3_KEY_3 || echo "[WARN] Could not restore backup for job 3"
-          echo "[ROLLBACK 3] Restarting $GLUE_JOB_3 with old script..."
-          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_3 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
-          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 3 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 3"; fi
-
-          echo "[ROLLBACK 4] Restoring old script for $GLUE_JOB_4..."
-          aws s3 cp .backups/glue_job_4_backup.py s3://$S3_BUCKET_4/$S3_KEY_4 || echo "[WARN] Could not restore backup for job 4"
-          echo "[ROLLBACK 4] Restarting $GLUE_JOB_4 with old script..."
-          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_4 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
-          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 4 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 4"; fi
-
-          echo ""
-          echo "✅ Rollback completed - old scripts restored and jobs restarted"
-          echo "   → Monitor CloudWatch logs for execution status"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
