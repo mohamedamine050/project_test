@@ -35,31 +35,31 @@ jobs:
 
       - name: Get Terraform outputs
         run: |
-          echo "S3_BUCKET_1=$(terraform output -raw glue_test_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_1=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_1=$(terraform output -raw glue_test_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_1=$(terraform output -raw glue_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_2=$(terraform output -raw glue_second_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_2=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_2=$(terraform output -raw glue_second_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_2=$(terraform output -raw glue_second_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_3=$(terraform output -raw glue_third_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_3=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_3=$(terraform output -raw glue_third_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_3=$(terraform output -raw glue_third_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_4=$(terraform output -raw glue_fourth_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_4=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_4=$(terraform output -raw glue_fourth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_4=$(terraform output -raw glue_fourth_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_5=$(terraform output -raw glue_fifth_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_5=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_5=$(terraform output -raw glue_fifth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_5=$(terraform output -raw glue_fifth_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_6=$(terraform output -raw glue_sixth_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_6=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_6=$(terraform output -raw glue_sixth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_6=$(terraform output -raw glue_sixth_job_name)" >> $GITHUB_ENV
 
-          echo "S3_BUCKET_7=$(terraform output -raw glue_seventh_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_BUCKET_7=$(terraform output -raw scripts_bucket_name)" >> $GITHUB_ENV
           echo "S3_KEY_7=$(terraform output -raw glue_seventh_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_7=$(terraform output -raw glue_seventh_job_name)" >> $GITHUB_ENV
 
@@ -92,6 +92,7 @@ jobs:
           aws s3 cp s3://$S3_BUCKET_4/$S3_KEY_4 .backups/glue_job_4_backup.py 2>/dev/null || echo "[WARN] No current script for job 4"
           aws s3 cp s3://$S3_BUCKET_5/$S3_KEY_5 .backups/glue_job_5_backup.py 2>/dev/null || echo "[WARN] No current script for job 5"
           aws s3 cp s3://$S3_BUCKET_6/$S3_KEY_6 .backups/glue_job_6_backup.py 2>/dev/null || echo "[WARN] No current script for job 6"
+          aws s3 cp s3://$S3_BUCKET_7/$S3_KEY_7 .backups/glue_job_7_backup.py 2>/dev/null || echo "[WARN] No current script for job 7"
           echo "[✓] Backup completed"
 
       - name: Replace Glue script in S3
