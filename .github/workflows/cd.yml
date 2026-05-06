@@ -113,6 +113,7 @@ jobs:
           aws s3 cp s3://$S3_BUCKET_7/$S3_KEY_7 .backups/glue_job_7_backup.py 2>/dev/null || echo "[WARN] No current script for job 7"
           aws s3 cp s3://$S3_BUCKET_8/$S3_KEY_8 .backups/glue_job_8_backup.py 2>/dev/null || echo "[WARN] No current script for job 8"
           aws s3 cp s3://$S3_BUCKET_9/$S3_KEY_9 .backups/glue_job_9_backup.py 2>/dev/null || echo "[WARN] No current script for job 9"
+          aws s3 cp s3://$S3_BUCKET_10/$S3_KEY_10 .backups/glue_job_10_backup.py 2>/dev/null || echo "[WARN] No current script for job 10"
           echo "[✓] Backup completed"
 
       - name: Replace Glue script in S3
@@ -126,7 +127,7 @@ jobs:
           aws s3 cp frontend/src/jobs/peouo.py $S3_PATH_7
           aws s3 cp frontend/src/jobs/tele.py $S3_PATH_8
           aws s3 cp frontend/src/jobs/transform.py $S3_PATH_9
-          aws s3 cp frontend/src/jobs/transform.py $S3_PATH_10
+          aws s3 cp frontend/src/jobs/test.py $S3_PATH_10
 
       # ─────────────────────────────
       # 10. Trigger Glue Jobs + capturer les Run IDs
@@ -307,6 +308,12 @@ jobs:
           echo "[ROLLBACK 9] Restarting $GLUE_JOB_9 with old script..."
           NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_9 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
           if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 9 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 9"; fi
+
+          echo "[ROLLBACK 10] Restoring old script for $GLUE_JOB_10..."
+          aws s3 cp .backups/glue_job_10_backup.py s3://$S3_BUCKET_10/$S3_KEY_10 || echo "[WARN] Could not restore backup for job 10"
+          echo "[ROLLBACK 10] Restarting $GLUE_JOB_10 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_10 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 10 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 10"; fi
 
           echo ""
           echo "✅ Rollback completed - old scripts restored and jobs restarted"
