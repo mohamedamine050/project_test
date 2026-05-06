@@ -75,6 +75,10 @@ jobs:
           echo "S3_KEY_10=$(terraform output -raw glue_tenth_script_s3_key)" >> $GITHUB_ENV
           echo "GLUE_JOB_10=$(terraform output -raw glue_tenth_job_name)" >> $GITHUB_ENV
 
+          echo "S3_BUCKET_11=$(terraform output -raw glue_eleventh_script_s3_bucket)" >> $GITHUB_ENV
+          echo "S3_KEY_11=$(terraform output -raw glue_eleventh_script_s3_key)" >> $GITHUB_ENV
+          echo "GLUE_JOB_11=$(terraform output -raw glue_eleventh_job_name)" >> $GITHUB_ENV
+
 
       - name: Build S3 path
         run: |
@@ -97,6 +101,8 @@ jobs:
           echo "S3_PATH_9=s3://$S3_BUCKET_9/$S3_KEY_9" >> $GITHUB_ENV
 
           echo "S3_PATH_10=s3://$S3_BUCKET_10/$S3_KEY_10" >> $GITHUB_ENV
+
+          echo "S3_PATH_11=s3://$S3_BUCKET_11/$S3_KEY_11" >> $GITHUB_ENV
 
 
       - name: Backup Current Glue Scripts
@@ -128,6 +134,7 @@ jobs:
           aws s3 cp frontend/src/jobs/tele.py $S3_PATH_8
           aws s3 cp frontend/src/jobs/transform.py $S3_PATH_9
           aws s3 cp frontend/src/jobs/test.py $S3_PATH_10
+          aws s3 cp frontend/src/jobs/LETING.py $S3_PATH_11
 
       # ─────────────────────────────
       # 10. Trigger Glue Jobs + capturer les Run IDs
@@ -166,7 +173,10 @@ jobs:
           RUN10=$(aws glue start-job-run --job-name "$GLUE_JOB_10" --query 'JobRunId' --output text)
           echo "RUN_ID_10=$RUN10" >> $GITHUB_ENV
 
-          echo "Jobs lancés : $RUN1 | $RUN2 | $RUN3 | $RUN4 | $RUN5 | $RUN6 | $RUN7 | $RUN8 | $RUN9 | $RUN10"
+          RUN11=$(aws glue start-job-run --job-name "$GLUE_JOB_11" --query 'JobRunId' --output text)
+          echo "RUN_ID_11=$RUN11" >> $GITHUB_ENV
+
+          echo "Jobs lancés : $RUN1 | $RUN2 | $RUN3 | $RUN4 | $RUN5 | $RUN6 | $RUN7 | $RUN8 | $RUN9 | $RUN10 | $RUN11"
 
       # ─────────────────────────────
       # 11. SMOKE TEST
@@ -228,6 +238,7 @@ jobs:
           watch_run "$GLUE_JOB_8" "$RUN_ID_8" &
           watch_run "$GLUE_JOB_9" "$RUN_ID_9" &
           watch_run "$GLUE_JOB_10" "$RUN_ID_10" &
+          watch_run "$GLUE_JOB_11" "$RUN_ID_11" &
 
           # Attendre tous les processus et échouer si l'un d'eux échoue
           FAILED=0
