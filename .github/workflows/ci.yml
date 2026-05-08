@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - '.github/workflows/**'
       - 'README.md'
       - 'docs/**'
+      - '.env.example'
   workflow_dispatch:
 
 jobs:
