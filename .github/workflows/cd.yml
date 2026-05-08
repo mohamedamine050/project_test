@@ -119,6 +119,24 @@ jobs:
           echo "S3_PATH_12=s3://$S3_BUCKET_12/$S3_KEY_12" >> $GITHUB_ENV
 
 
+      - name: Backup Current Glue Scripts
+        run: |
+          set -euo pipefail
+          mkdir -p .backups
+          echo "[INFO] Backing up current Glue scripts before deployment..."
+          aws s3 cp s3://$S3_BUCKET_1/$S3_KEY_1 .backups/glue_job_1_backup.py 2>/dev/null || echo "[WARN] No current script for job 1"
+          aws s3 cp s3://$S3_BUCKET_2/$S3_KEY_2 .backups/glue_job_2_backup.py 2>/dev/null || echo "[WARN] No current script for job 2"
+          aws s3 cp s3://$S3_BUCKET_3/$S3_KEY_3 .backups/glue_job_3_backup.py 2>/dev/null || echo "[WARN] No current script for job 3"
+          aws s3 cp s3://$S3_BUCKET_4/$S3_KEY_4 .backups/glue_job_4_backup.py 2>/dev/null || echo "[WARN] No current script for job 4"
+          aws s3 cp s3://$S3_BUCKET_5/$S3_KEY_5 .backups/glue_job_5_backup.py 2>/dev/null || echo "[WARN] No current script for job 5"
+          aws s3 cp s3://$S3_BUCKET_6/$S3_KEY_6 .backups/glue_job_6_backup.py 2>/dev/null || echo "[WARN] No current script for job 6"
+          aws s3 cp s3://$S3_BUCKET_7/$S3_KEY_7 .backups/glue_job_7_backup.py 2>/dev/null || echo "[WARN] No current script for job 7"
+          aws s3 cp s3://$S3_BUCKET_8/$S3_KEY_8 .backups/glue_job_8_backup.py 2>/dev/null || echo "[WARN] No current script for job 8"
+          aws s3 cp s3://$S3_BUCKET_9/$S3_KEY_9 .backups/glue_job_9_backup.py 2>/dev/null || echo "[WARN] No current script for job 9"
+          aws s3 cp s3://$S3_BUCKET_10/$S3_KEY_10 .backups/glue_job_10_backup.py 2>/dev/null || echo "[WARN] No current script for job 10"
+          aws s3 cp s3://$S3_BUCKET_11/$S3_KEY_11 .backups/glue_job_11_backup.py 2>/dev/null || echo "[WARN] No current script for job 11"
+          aws s3 cp s3://$S3_BUCKET_12/$S3_KEY_12 .backups/glue_job_12_backup.py 2>/dev/null || echo "[WARN] No current script for job 12"
+          echo "[✓] Backup completed"
 
       - name: Replace Glue script in S3
         run: |
@@ -257,3 +275,94 @@ jobs:
 
           echo ""
           echo "✅ Tous les smoke tests sont passés."
+
+      # ─────────────────────────────
+      # 12. ROLLBACK ON FAILURE
+      # Restore the backed up scripts from .backups/
+      # ─────────────────────────────
+      - name: Rollback - Restore Backups
+        if: failure()
+        run: |
+          set -euo pipefail
+          echo ""
+          echo "🔴 SMOKE TEST FAILED - INITIATING ROLLBACK"
+          echo ""
+          echo "[ROLLBACK 1] Restoring old script for $GLUE_JOB_1..."
+          aws s3 cp .backups/glue_job_1_backup.py s3://$S3_BUCKET_1/$S3_KEY_1 || echo "[WARN] Could not restore backup for job 1"
+          echo "[ROLLBACK 1] Restarting $GLUE_JOB_1 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_1 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 1 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 1"; fi
+
+          echo "[ROLLBACK 2] Restoring old script for $GLUE_JOB_2..."
+          aws s3 cp .backups/glue_job_2_backup.py s3://$S3_BUCKET_2/$S3_KEY_2 || echo "[WARN] Could not restore backup for job 2"
+          echo "[ROLLBACK 2] Restarting $GLUE_JOB_2 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_2 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 2 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 2"; fi
+
+          echo "[ROLLBACK 3] Restoring old script for $GLUE_JOB_3..."
+          aws s3 cp .backups/glue_job_3_backup.py s3://$S3_BUCKET_3/$S3_KEY_3 || echo "[WARN] Could not restore backup for job 3"
+          echo "[ROLLBACK 3] Restarting $GLUE_JOB_3 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_3 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 3 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 3"; fi
+
+          echo "[ROLLBACK 4] Restoring old script for $GLUE_JOB_4..."
+          aws s3 cp .backups/glue_job_4_backup.py s3://$S3_BUCKET_4/$S3_KEY_4 || echo "[WARN] Could not restore backup for job 4"
+          echo "[ROLLBACK 4] Restarting $GLUE_JOB_4 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_4 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 4 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 4"; fi
+
+          echo "[ROLLBACK 5] Restoring old script for $GLUE_JOB_5..."
+          aws s3 cp .backups/glue_job_5_backup.py s3://$S3_BUCKET_5/$S3_KEY_5 || echo "[WARN] Could not restore backup for job 5"
+          echo "[ROLLBACK 5] Restarting $GLUE_JOB_5 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_5 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 5 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 5"; fi
+
+          echo "[ROLLBACK 6] Restoring old script for $GLUE_JOB_6..."
+          aws s3 cp .backups/glue_job_6_backup.py s3://$S3_BUCKET_6/$S3_KEY_6 || echo "[WARN] Could not restore backup for job 6"
+          echo "[ROLLBACK 6] Restarting $GLUE_JOB_6 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_6 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 6 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 6"; fi
+
+          echo "[ROLLBACK 7] Restoring old script for $GLUE_JOB_7..."
+          aws s3 cp .backups/glue_job_7_backup.py s3://$S3_BUCKET_7/$S3_KEY_7 || echo "[WARN] Could not restore backup for job 7"
+          echo "[ROLLBACK 7] Restarting $GLUE_JOB_7 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_7 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 7 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 7"; fi
+
+          echo "[ROLLBACK 8] Restoring old script for $GLUE_JOB_8..."
+          aws s3 cp .backups/glue_job_8_backup.py s3://$S3_BUCKET_8/$S3_KEY_8 || echo "[WARN] Could not restore backup for job 8"
+          echo "[ROLLBACK 8] Restarting $GLUE_JOB_8 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_8 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 8 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 8"; fi
+
+          echo "[ROLLBACK 9] Restoring old script for $GLUE_JOB_9..."
+          aws s3 cp .backups/glue_job_9_backup.py s3://$S3_BUCKET_9/$S3_KEY_9 || echo "[WARN] Could not restore backup for job 9"
+          echo "[ROLLBACK 9] Restarting $GLUE_JOB_9 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_9 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 9 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 9"; fi
+
+          echo "[ROLLBACK 10] Restoring old script for $GLUE_JOB_10..."
+          aws s3 cp .backups/glue_job_10_backup.py s3://$S3_BUCKET_10/$S3_KEY_10 || echo "[WARN] Could not restore backup for job 10"
+          echo "[ROLLBACK 10] Restarting $GLUE_JOB_10 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_10 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 10 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 10"; fi
+
+          echo "[ROLLBACK 11] Restoring old script for $GLUE_JOB_11..."
+          aws s3 cp .backups/glue_job_11_backup.py s3://$S3_BUCKET_11/$S3_KEY_11 || echo "[WARN] Could not restore backup for job 11"
+          echo "[ROLLBACK 11] Restarting $GLUE_JOB_11 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_11 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 11 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 11"; fi
+
+          echo "[ROLLBACK 12] Restoring old script for $GLUE_JOB_12..."
+          aws s3 cp .backups/glue_job_12_backup.py s3://$S3_BUCKET_12/$S3_KEY_12 || echo "[WARN] Could not restore backup for job 12"
+          echo "[ROLLBACK 12] Restarting $GLUE_JOB_12 with old script..."
+          NEW_RUN=$(aws glue start-job-run --job-name $GLUE_JOB_12 --query 'JobRunId' --output text 2>/dev/null || echo "ERROR")
+          if [ "$NEW_RUN" != "ERROR" ]; then echo "[✓] Job 12 restarted with RUN_ID=$NEW_RUN"; else echo "[ERROR] Failed to restart job 12"; fi
+
+          echo ""
+          echo "✅ Rollback completed - old scripts restored and jobs restarted"
+          echo "   → Monitor CloudWatch logs for execution status"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
