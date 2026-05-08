@@ -8,6 +8,7 @@ on:
       - '.github/workflows/**'
       - 'README.md'
       - 'docs/**'
+      - '.env.example'
   workflow_dispatch:
 
 jobs:
