@@ -182,7 +182,7 @@ jobs:
           set -euo pipefail
 
           MAX_RETRIES=25
-          SLEEP_TIME=20
+          SLEEP_TIME=25
 
           # Surveille un run déjà lancé (RUN_ID passé en argument)
           # FIX : prend JOB_NAME + RUN_ID existant, ne relance PAS le job
